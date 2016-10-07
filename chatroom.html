@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://code.jquery.com/jquery-1.9.1.js"></script>
+    <script src="http://simplewebrtc.com/latest.js"></script>
+    <script src="chatroom.js"></script>
+    <link rel="stylesheet" type="text/css" href="chatroom.css" />
+
+<!--    <script src="latest-v2.js"></script> -->
+    <title>Chat Room</title>
+    <script language="javascript" type="text/javascript">
+      window.addEventListener("load", function(){
+        document.getElementById("connect").onclick= function(){
+            var name = $('#yourname').val();
+            if(name == ""){
+              alert("name CAN'T be null!");
+            }
+            else{
+              startCommunication(name);
+              $('#welcome').append("Welcome: " +name+ '\n');
+            }
+        };
+      }, false);
+</script>
+
+</head>
+<body>
+    Write Your Name Here <br/>
+    <input  id="yourname" type="text"/>
+    <input id="connect" type="button" value="ConnectToRoom" /><br />
+    <p id="welcome"></p><br />
+    <textarea id="messages" rows="5" cols="20"></textarea><br />
+    Message: <input id="text" type="text"/>
+    <input id="broadcast" type="button" value="broadcast" /><br />
+    Username: <input  id="username" type="text"/>
+    Message: <input id="textTonick" type="text"/>
+    <input id="send" type="button" value="send" /><br />
+    <p id="userlist"></p><br />
+    <input id="get_onlion_user" type="button" value="GetOnLineList" /><br />
+</body>
+</html>
