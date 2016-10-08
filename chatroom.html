@@ -4,20 +4,31 @@
     <script src="https://code.jquery.com/jquery-1.9.1.js"></script>
     <script src="http://simplewebrtc.com/latest.js"></script>
     <script src="chatroom.js"></script>
+    <script src="keepalive.js"></script>
+
     <link rel="stylesheet" type="text/css" href="chatroom.css" />
 
-<!--    <script src="latest-v2.js"></script> -->
     <title>Chat Room</title>
     <script language="javascript" type="text/javascript">
+      var login_flag = false;
       window.addEventListener("load", function(){
         document.getElementById("connect").onclick= function(){
+            //firstly, test the connection of internet
+            Test_Connection();
             var name = $('#yourname').val();
             if(name == ""){
-              alert("name CAN'T be null!");
+              alert("NAME CAN'T BE NULL!");
             }
             else{
-              startCommunication(name);
-              $('#welcome').append("Welcome: " +name+ '\n');
+              if(login_flag == false){
+                startCommunication(name);
+                $('#welcome').append("WELCOME: " +name+ '\n');
+                login_flag = true;
+              }
+              //in case user relogin
+              else{
+                alert("You have already logged in");
+              }
             }
         };
       }, false);
@@ -32,10 +43,10 @@
     <textarea id="messages" rows="5" cols="20"></textarea><br />
     Message: <input id="text" type="text"/>
     <input id="broadcast" type="button" value="broadcast" /><br />
-    Username: <input  id="username" type="text"/>
+    To: <input  id="username" type="text"/>
     Message: <input id="textTonick" type="text"/>
     <input id="send" type="button" value="send" /><br />
     <p id="userlist"></p><br />
-    <input id="get_onlion_user" type="button" value="GetOnLineList" /><br />
+    <input id="get_online_user" type="button" value="GetOnLineList" /><br />
 </body>
 </html>

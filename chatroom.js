@@ -27,10 +27,15 @@ function startCommunication(yourname) {
       $('#broadcast').click(function () {
           var msg = $('#text').val();
           console.log(msg);
-          webrtc.sendToAll('chat', { message: msg, nick: webrtc.config.nick });
-          $('#messages').append('<br>You:<br>' + msg + '\n');
-          //empty the textarea
-          $('#text').val('');
+          if(msg == ""){
+            alert("Can't send NULL message");
+          }
+          else{
+            webrtc.sendToAll('chat', { message: msg, nick: webrtc.config.nick });
+            $('#messages').append('<br>You:<br>' + msg + '\n');
+            //empty the textarea
+            $('#text').val('');
+          }
       });
 
       //this is for sending a message to a speific person
@@ -40,26 +45,34 @@ function startCommunication(yourname) {
           var msg = $('#textTonick').val();
           console.log(msg);
           var partner_name = $('#username').val();
-          var peers = webrtc.getPeers();
+          //in case to avoid misoperation
+          if(msg == "" || partner_name == ""){
+            alert("Can't send null message or send message to nobody");
+          }
+          else{
 
-          peers.some(function(peer){
-              if(typeof(peer.nick) != "undefined"){
-                if(peer.nick == partner_name){
-                //broadcast the sentence to all
-                peer.send('chat', { message: msg, nick: webrtc.config.nick});
-                $('#messages').append('<br>You:<br>' + msg + '\n');
-                //empty the textarea
-                $('#textTonick').val('');
-                //add return to avoid some redundances peers
-                return true;
+            var peers = webrtc.getPeers();
+
+            peers.some(function(peer){
+                if(typeof(peer.nick) != "undefined"){
+                  if(peer.nick == partner_name){
+                  //broadcast the sentence to all
+                  peer.send('chat', { message: msg, nick: webrtc.config.nick});
+                  $('#messages').append('<br>You:<br>' + msg + '\n');
+                  //empty the textarea
+                  $('#textTonick').val('');
+                  //add return to avoid some redundances peers
+                  return true;
+                  }
                 }
-              }
-          });
+            });
+          }
+
       });
 
 
       //click this button to get list of users who are online now!
-      $('#get_onlion_user').click(function (){
+      $('#get_online_user').click(function (){
         $('#userlist').val('').empty();
         $('#userlist').append('<br>User Online<br>\n');
           //get all peers, then find the peer who has the nickname we want
@@ -72,7 +85,8 @@ function startCommunication(yourname) {
       });
 
 
-      //we must wait for a moment until make sure they are connected, for example 800milliseconds
+      //we must wait for a moment to make sure that peers are connected
+      // here we wait 800milliseconds
       setTimeout(function(){
         webrtc.sendToAll('arrive', {nick: webrtc.config.nick });
       }, 800);
@@ -108,8 +122,8 @@ function startCommunication(yourname) {
     webrtc.leaveRoom();
   }
 
-
-
+  // test internet connection every 5seconds
+  setInterval(Test_Connection,5000);
 
 
 }
