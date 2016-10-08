@@ -1,3 +1,8 @@
+// provide a function Test_Connection to detect internent connection
+// if we put our chatroom application on internet, the best way to detect
+// internet connection is to use ajax to request our own website.
+// As we test locally, the ajax will never return false
+
 function doNotConnectFunction() {
   alert("Internet disconnected");
   window.location.reload();
