@@ -2,9 +2,9 @@
 
 ## Introduction
 The goal of this program is to create a chatroom from one browser tab to another, using the RTCDataChannel of the WebRTC HTML5 API. Once a user connected to our chatroom, he/she can consult the online user list, broadcast his/her message, and send a message to a specific user, when a new user comes in or a connected user gets out, everybody in the room will receive a notification. This program will also periodically detect the internet connection, to avoid a member uses a broken peer. The program contains following parts.
-**chatroom.html**,**chatroom.css**: interface of chatroom
-**chatroom.js**: functions run in back_end
-**keepalive.js**: provide a function to detect internet connection
+- **chatroom.html**,**chatroom.css**: interface of chatroom
+- **chatroom.js**: functions run in back_end
+- **keepalive.js**: provide a function to detect internet connection
 
 ## Prerequisites
 Mozilla Firefox 42 or Google Chrome 46 or later
