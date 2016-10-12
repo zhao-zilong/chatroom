@@ -20,4 +20,5 @@ Because we did not implement a process of registration, so we can not avoid the 
 - Every time a member comes in or gets out, everyone in the room will receive a notification.
 
 ## PS
-Answer for Question 2 is [here](Q2.md)
+- To be continued, I will add a logic clock for our chatroom, to make sure the messages can be showed 100% causally when we broadcast messages.
+- Answer for Question 2 is [here](Q2.md)
