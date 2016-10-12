@@ -56,7 +56,7 @@ function startCommunication(yourname) {
             peers.some(function(peer){
                 if(typeof(peer.nick) != "undefined"){
                   if(peer.nick == partner_name){
-                  //broadcast the sentence to all
+                  // send message to 'partner_name'
                   peer.send('chat', { message: msg, nick: webrtc.config.nick});
                   $('#messages').append('<br>You:<br>' + msg + '\n');
                   //empty the textarea
