@@ -12,7 +12,23 @@ function startCommunication(yourname) {
       nick: yourname
   });
 
+  var logic_clock = 0;
 
+
+  //format [message,clock,ack,nick,timestamp]
+  var FIFO = new Array();
+
+  //the sleep method in js, because setTimeout() is a function asynchronous
+  //but!!! this is a busy loop, the cpu is not really sleeping, but this is
+  //the only way I found to sleep a js application
+  function sleep(milliseconds) {
+  var start = new Date().getTime();
+  for (var i = 0; i < 1e7; i++) {
+    if ((new Date().getTime() - start) > milliseconds){
+      break;
+    }
+  }
+}
 
 
   // we have to wait until it's ready
@@ -31,8 +47,13 @@ function startCommunication(yourname) {
             alert("Can't send NULL message");
           }
           else{
-            webrtc.sendToAll('chat', { message: msg, nick: webrtc.config.nick });
-            $('#messages').append('<br>You:<br>' + msg + '\n');
+            logic_clock = logic_clock + 1;
+            var date = new Date();
+            webrtc.sendToAll('broadcast', { message: msg, nick: webrtc.config.nick, clock: logic_clock, timestamp: date.getTime()});
+            //add our own message to FIFO, wait to be listed and confirmed
+            FIFO[FIFO.length] = [msg, logic_clock, 0, webrtc.config.nick, date.getTime()];
+            //receive the message from myself
+            logic_clock = logic_clock + 1;
             //empty the textarea
             $('#text').val('');
           }
@@ -56,7 +77,7 @@ function startCommunication(yourname) {
             peers.some(function(peer){
                 if(typeof(peer.nick) != "undefined"){
                   if(peer.nick == partner_name){
-                  // send message to 'partner_name'
+                  //broadcast the sentence to all
                   peer.send('chat', { message: msg, nick: webrtc.config.nick});
                   $('#messages').append('<br>You:<br>' + msg + '\n');
                   //empty the textarea
@@ -85,7 +106,7 @@ function startCommunication(yourname) {
       });
 
 
-      //we must wait for a moment to make sure that peers are connected
+      //it takes time to build the connections, so we can‘t send the message directly
       // here we wait 800milliseconds
       setTimeout(function(){
         webrtc.sendToAll('arrive', {nick: webrtc.config.nick });
@@ -95,6 +116,78 @@ function startCommunication(yourname) {
   //For Text Chat ------------------------------------------------------------------
   // Await messages from others
   webrtc.connection.on('message', function (data) {
+      if (data.type === 'broadcast') {
+          console.log('chat received', data);
+          var flag = false;
+          for (var i = 0; i < FIFO.length; i++) {
+                //if we have already received the acks of this message
+                if(data.payload.clock == FIFO[i][1]&&FIFO[i][3] == data.payload.nick){
+
+                    FIFO[i][0] = data.payload.message;
+                    FIFO[i][2]+= 1;
+                    FIFO[i][4] = data.payload.timestamp;
+                  flag = true;
+                }
+          }
+          if(flag == false){
+            FIFO[FIFO.length] = [data.payload.message, data.payload.clock, 1, data.payload.nick, data.payload.timestamp];
+          }
+
+          // very important procedure, ordered the messages by logic clock
+          FIFO.sort(function(x, y){
+              return x[1] - y[1];
+          });
+         webrtc.sendToAll('ACK', {nick: data.payload.nick, clock: data.payload.clock});
+
+         //when we receive a new message, we have to update our own logic clock, it will 1 plus max between local logic clock and message send's logic clock
+         logic_clock = Math.max(data.payload.clock, logic_clock)+1;
+         var date = new Date();
+
+         //if we do not have enough ack, but this message is generated 1second before, we show it anyway
+         //in this situation, it means some users are disconnected or more users loged in after the send broadcast the message
+         //either way, we can not block our whole message tube
+         if( (FIFO[0] != "undefined" && FIFO[0] != null && FIFO[0][2] >= webrtc.getPeers().length)
+           || (date.getTime() - FIFO[0][4] > 1000)
+         ){
+           // if the message is "", it means we never received the message, we just received the ACK of this message, so we neglect it.
+           // and we always show the message from the head of FIFO
+           if(FIFO[0][0] != ""){
+              $('#messages').append('<br>' + FIFO[0][3] + ':<br>' + FIFO[0][0]+ '\n');
+           }
+           FIFO.shift();
+         }
+
+
+      }
+      if (data.type === 'ACK') {
+          console.log('chat received', data);
+          var flag = false;
+          for (var i = 0; i < FIFO.length; i++) {
+                if(data.payload.clock == FIFO[i][1] && data.payload.nick == FIFO[i][3]){
+                    FIFO[i][2] += 1;
+                  flag = true;
+                }
+          }
+          var date = new Date();
+          if(flag == false){
+            FIFO[FIFO.length] = ["", data.payload.clock, 1, data.payload.nick, date.getTime()];
+          }
+          //test ack number >= number of peers
+          //>=: because there is a scenario that when a member give a ACK and leave, then our ack can bigger than peers.
+          var date = new Date();
+          if( (FIFO[0] != "undefined" && FIFO[0] != null && FIFO[0][2] >= webrtc.getPeers().length)
+            || (date.getTime() - FIFO[0][4] > 1000)
+          ){
+          // if the message is "", it means we never received the message, we just received the ACK of this message, so we neglect it.
+           // and we always show the message from the head of FIFO
+            if(FIFO[0][0] != ""){
+               $('#messages').append('<br>' + FIFO[0][3] + ':<br>' + FIFO[0][0]+ '\n');
+            }
+            // cut the first element
+            FIFO.shift();
+          }
+
+      }
       if (data.type === 'chat') {
           console.log('chat received', data);
           $('#messages').append('<br>' + data.payload.nick + ':<br>' + data.payload.message+ '\n');
@@ -106,6 +199,7 @@ function startCommunication(yourname) {
       if (data.type === 'arrive') {
           console.log('arrive received', data);
           $('#messages').append('<br>' + data.payload.nick + " is comming in this room"+'<br>'+'\n');
+
       }
   });
 
@@ -125,5 +219,19 @@ function startCommunication(yourname) {
   // test internet connection every 5seconds
   setInterval(Test_Connection,5000);
 
+
+  //scenario to test, commented the following code if you do not want to test
+  //everyone broadcast his logic clock, so we can see the order of message, the number of new message will always >= older number
+  //so the message will be causal
+
+  setInterval(function(){
+    var date = new Date();
+    logic_clock = logic_clock + 1;
+    webrtc.sendToAll(
+    'broadcast', { message: logic_clock, nick: webrtc.config.nick, clock: logic_clock, timestamp: date.getTime()});
+    FIFO[FIFO.length] = [logic_clock,logic_clock,0,webrtc.config.nick, date.getTime()];
+    logic_clock = logic_clock + 1;
+    },
+    5000);
 
 }
