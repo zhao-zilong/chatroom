@@ -20,5 +20,5 @@ Because we did not implement a process of registration, so we can not avoid the 
 - Every time a member comes in or gets out, everyone in the room will receive a notification.
 
 ## PS
-- To be continued, I will add a logic clock for our chatroom, to make sure the messages can be showed 100% causally when we broadcast messages. I will put this update in branch 'develop'.
+- in branch 'develop'(we now in branch master), I have implemented a similar chatroom application with Lamport logic clock, all the basic functions and interface are same as the one in branch master,but It can make sure that all the message we show will be causal.
 - Answer for Question 2 is [here](Q2.md)
