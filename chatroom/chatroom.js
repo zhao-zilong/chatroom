@@ -12,6 +12,7 @@ function startCommunication(yourname) {
       nick: yourname
   });
 
+  // initial logic clock to 0
   var logic_clock = 0;
 
 
@@ -129,6 +130,7 @@ function startCommunication(yourname) {
                   flag = true;
                 }
           }
+          //if this is the first time we received this message, we put it into local FIFO 
           if(flag == false){
             FIFO[FIFO.length] = [data.payload.message, data.payload.clock, 1, data.payload.nick, data.payload.timestamp];
           }
@@ -139,7 +141,7 @@ function startCommunication(yourname) {
           });
          webrtc.sendToAll('ACK', {nick: data.payload.nick, clock: data.payload.clock});
 
-         //when we receive a new message, we have to update our own logic clock, it will 1 plus max between local logic clock and message send's logic clock
+         //when we receive a new message, we have to update our own logic clock, it will be 1 plus max between local logic clock and message send's logic clock
          logic_clock = Math.max(data.payload.clock, logic_clock)+1;
          var date = new Date();
 
@@ -220,7 +222,7 @@ function startCommunication(yourname) {
   setInterval(Test_Connection,5000);
 
 
-  //scenario to test, commented the following code if you do not want to test
+  //scenario to test, commented all the following code if you do not want to test
   //everyone broadcast his logic clock, so we can see the order of message, the number of new message will always >= older number
   //so the message will be causal
 
